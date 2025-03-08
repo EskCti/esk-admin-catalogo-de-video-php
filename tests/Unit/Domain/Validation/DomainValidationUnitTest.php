@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Domain\Validation;
 
+use Core\Domain\Exception\EntityValidationException;
 use Core\Domain\Validation\DomainValidation;
 use PHPUnit\Framework\TestCase;
 
@@ -15,7 +16,7 @@ class DomainValidationUnitTest extends TestCase
 
       $this->assertTrue(false);
     } catch (\Throwable $th) {
-      $this->assertInstanceOf(DomainValidation::class, $th);
+      $this->assertInstanceOf(EntityValidationException::class, $th);
     }
   }
 }
