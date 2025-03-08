@@ -43,4 +43,16 @@ class DomainValidationUnitTest extends TestCase
       $this->assertInstanceOf(EntityValidationException::class, $th, 'Custom Messagem');
     }
   }
+
+  public function testStrCanNullAndMaxLength()
+  {
+    try {
+      $value = "";
+      DomainValidation::strMaxLength($value, 5, 'Custom Messagem');
+
+      $this->assertTrue(false);
+    } catch (\Throwable $th) {
+      $this->assertInstanceOf(EntityValidationException::class, $th, 'Custom Messagem');
+    }
+  }
 }
