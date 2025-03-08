@@ -2,52 +2,62 @@
 
 namespace Tests\Unit\Domain\Entity;
 
+use Core\Domain\Exception\EntityValidationException;
 use PHPUnit\Framework\TestCase;
 use Core\Domain\Entity\Category;
+use Throwable;
 
 class CategoryUnitTest extends TestCase
 {
-  public function testAttributes() {
+  public function testAttributes()
+  {
     $category = new Category(
       id: 'ssss',
       name: 'New category',
       description: 'New description',
       isActive: true
     );
-
     $this->assertEquals('New category', $category->name);
     $this->assertEquals('New description', $category->description);
-    $this->assertEquals(true, $category->isActive);    
+    $this->assertEquals(true, $category->isActive);
   }
-
-  public function testActivated() {
+  public function testActivated()
+  {
     $category = new Category(
       name: 'New Category',
       isActive: false,
     );
-
     $this->assertFalse($category->isActive);
     $category->activate();
     $this->assertTrue($category->isActive);
   }
-  
-  public function testUpdate() 
+  public function testUpdate()
   {
     $uuid = 'uuid.value';
-
     $category = new Category(
       id: $uuid,
       name: 'New category',
       description: 'New description',
       isActive: true
     );
-
     $category->update(
       name: 'new_name',
       description: 'new_desc',
     );
-
     $this->assertEquals('new_name', $category->name);
     $this->assertEquals('new_desc', $category->description);
   }
-} 
+  public function testExceptionName()
+  {
+    try {
+      $category = new Category(
+        name: 'Ne',
+        description: 'New Desc',
+      );
+
+      $this->assertTrue(false);
+    } catch (Throwable $th) {
+      $this->assertInstanceOf(EntityValidationException::class, $th);
+    }
+  }
+}
