@@ -31,4 +31,16 @@ class DomainValidationUnitTest extends TestCase
       $this->assertInstanceOf(EntityValidationException::class, $th, 'Custom Messagem');
     }
   }
+
+  public function testStrMinLength()
+  {
+    try {
+      $value = 'Te';
+      DomainValidation::strMinLength($value, 3, 'Custom Messagem');
+
+      $this->assertTrue(false);
+    } catch (\Throwable $th) {
+      $this->assertInstanceOf(EntityValidationException::class, $th, 'Custom Messagem');
+    }
+  }
 }
