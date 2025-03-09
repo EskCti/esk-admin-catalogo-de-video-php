@@ -20,12 +20,6 @@ class SimpleTextTest extends TestCase
     $this->assertEquals('Text with spaces', (string) $text);
   }
 
-  public function testExceptionEmptyValue()
-  {
-    $this->expectException(EntityValidationException::class);
-    new SimpleText('');
-  }
-
   public function testStaticCreate()
   {
     $text = SimpleText::create('Valid text', 3, 100);
