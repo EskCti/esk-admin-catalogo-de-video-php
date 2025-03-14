@@ -5,6 +5,7 @@ namespace Tests\Unit\Domain\Entity;
 use Core\Domain\Entity\Category;
 use Core\Domain\Exception\EntityValidationException;
 use Core\Domain\ValueObject\BooleanValue;
+use Core\Domain\ValueObject\CreatedAt;
 use Core\Domain\ValueObject\SimpleName;
 use Core\Domain\ValueObject\SimpleText;
 use Core\Domain\ValueObject\Uuid;
@@ -39,6 +40,7 @@ class CategoryUnitTest extends TestCase
     );
 
     $this->assertEquals($uuid, $category->getId());
+    $this->assertInstanceOf(CreatedAt::class, $category->createdAt);
     $this->assertInstanceOf(Uuid::class, $category->id);
     $this->assertInstanceOf(SimpleName::class, $category->name);
     $this->assertInstanceOf(SimpleText::class, $category->description);
@@ -118,6 +120,7 @@ class CategoryUnitTest extends TestCase
     );
 
     // Test magic getter
+    $this->assertInstanceOf(CreatedAt::class, $category->createdAt);
     $this->assertInstanceOf(Uuid::class, $category->id);
     $this->assertInstanceOf(SimpleName::class, $category->name);
     $this->assertInstanceOf(SimpleText::class, $category->description);
