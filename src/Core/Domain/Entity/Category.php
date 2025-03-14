@@ -5,6 +5,7 @@ namespace Core\Domain\Entity;
 use Core\Domain\Entity\Traits\MethodsMagicsTrait;
 use Core\Domain\Exception\EntityValidationException;
 use Core\Domain\ValueObject\BooleanValue;
+use Core\Domain\ValueObject\CreatedAt;
 use Core\Domain\ValueObject\SimpleName;
 use Core\Domain\ValueObject\SimpleText;
 use Core\Domain\ValueObject\Uuid;
@@ -18,12 +19,14 @@ class Category
     protected string|SimpleName $name = '',
     protected string|SimpleText $description = '',
     protected bool|BooleanValue $isActive = true,
+    protected string|CreatedAt $createdAt = '',
   ) {
     $this->id = $this->id ? new Uuid($this->id) : Uuid::random();
     $this->name = is_string($this->name) ? SimpleName::create($this->name, 3, 255, 'name', 'Category') : $this->name;
     $this->description = is_string($this->description) ?
       SimpleText::create($this->description, 0, 1000, 'description', 'Category') : $this->description;
     $this->isActive = is_bool($this->isActive) ? new BooleanValue($this->isActive) : $this->isActive;
+    $this->createdAt = is_string($this->createdAt) ? CreatedAt::create($this->createdAt) : $this->createdAt;
   }
 
   public function activate(): void
@@ -63,5 +66,10 @@ class Category
   public function isActive(): bool
   {
     return $this->isActive->isTrue();
+  }
+
+  public function getCreatedAt(): string
+  {
+    return (string) $this->createdAt;
   }
 }
