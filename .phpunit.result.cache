@@ -1,1 +1,1 @@
-{"version":1,"defects":[],"times":{"Tests\\Unit\\TestUnitTest::test_call_method_foo":0.006}}
+{"version":1,"defects":{"Tests\\Unit\\Domain\\Entity\\CategoryUnitTest::testAttributes":4,"Tests\\Unit\\Domain\\Entity\\CategoryUnitTest::testActivated":4},"times":{"Tests\\Unit\\TestUnitTest::test_call_method_foo":0.005,"Tests\\Unit\\Domain\\Entity\\CategoryUnitTest::testAttributes":0.203,"Tests\\Unit\\Domain\\Entity\\CategoryUnitTest::testActivated":0.004,"Tests\\Unit\\Domain\\Entity\\CategoryUnitTest::testDeactivated":0}}
