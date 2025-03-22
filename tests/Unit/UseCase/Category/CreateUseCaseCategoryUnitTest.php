@@ -4,34 +4,148 @@ namespace Tests\Unit\UseCase\Category;
 
 use Core\Domain\Entity\Category;
 use Core\Domain\Repository\CategoryRepositoryInterface;
-use Core\Domain\ValueObject\SimpleName;
-use Core\Domain\ValueObject\SimpleText;
 use Core\UseCase\Category\CreateCategoryUseCase;
+use Core\UseCase\Mappers\Category\CategoryInputMapper;
+use Core\UseCase\Mappers\Category\CategoryOutputMapper;
+use Core\UseCase\DTO\Category\CategoryCreateInputDto;
+use Core\UseCase\DTO\Category\CategoryOutputDto;
 use Mockery;
 use PHPUnit\Framework\TestCase;
-use Ramsey\Uuid\Nonstandard\Uuid;
-use stdClass;
+use Ramsey\Uuid\Uuid;
 
 class CreateCategoryUseCaseTest extends TestCase
 {
-  public function testCreatedNewCategory()
+  /**
+   * @dataProvider provideValidCategoryData
+   */
+  public function testCreateNewCategory(string $name, string $description, bool $isActive)
   {
-    $categoryId = Uuid::uuid4()->toString();
-    $categoryName = SimpleName::create("Joao Silva");
-    $this->mockEntity = Mockery::mock(Category::class, [
-      $categoryId,
-      $categoryName,
-    ]);
+    // Arrange
+    $uuid = Uuid::uuid4()->toString();
 
-    $this->mockRepo = Mockery::mock(stdClass::class, CategoryRepositoryInterface::class);
-    $this->mockRepo->shouldReceive('insert')->andReturn($this->mockEntity);
+    // Mock da entidade que será retornada pelo repositório
+    $categoryMock = Mockery::mock(Category::class);
+    $categoryMock->shouldReceive('getId')->andReturn($uuid);
+    $categoryMock->shouldReceive('getName')->andReturn($name);
+    $categoryMock->shouldReceive('getDescription')->andReturn($description);
+    $categoryMock->shouldReceive('isActive')->andReturn($isActive);
 
-    $useCase = new CreateCategoryUseCase($this->mockRepo);
-    $useCase->execute();
+    // Mock do repositório
+    $repositoryMock = Mockery::mock(CategoryRepositoryInterface::class);
+    $repositoryMock->shouldReceive('insert')
+      ->once()
+      ->andReturn($categoryMock);
 
-    $this->assertTrue(true);
+    // Instanciação do caso de uso com o repositório mockado
+    $useCase = new CreateCategoryUseCase($repositoryMock);
+
+    // Criação do DTO de entrada
+    $input = new CategoryCreateInputDto(
+      name: $name,
+      description: $description,
+      isActive: $isActive
+    );
+
+    // Act
+    $output = $useCase->execute($input);
+
+    // Assert
+    $this->assertInstanceOf(CategoryOutputDto::class, $output);
+    $this->assertEquals($uuid, $output->id);
+    $this->assertEquals($name, $output->name);
+    $this->assertEquals($description, $output->description);
+    $this->assertEquals($isActive, $output->is_active);
 
     Mockery::close();
   }
 
+  /**
+   * Teste usando spy para verificar a interação com o repositório
+   */
+  public function testCreateNewCategoryWithSpy()
+  {
+    // Arrange
+    $name = 'Movies Action';
+    $description = 'Action movies description';
+    $isActive = true;
+
+    $uuid = Uuid::uuid4()->toString();
+
+    // Spy do repositório
+    $repositorySpy = Mockery::spy(CategoryRepositoryInterface::class);
+
+    // Prepare a mock Category to be returned by the spy
+    $categoryMock = Mockery::mock(Category::class);
+    $categoryMock->shouldReceive('getId')->andReturn($uuid);
+    $categoryMock->shouldReceive('getName')->andReturn($name);
+    $categoryMock->shouldReceive('getDescription')->andReturn($description);
+    $categoryMock->shouldReceive('isActive')->andReturn($isActive);
+
+    // Configure o spy para retornar a categoria mockada
+    $repositorySpy->shouldReceive('insert')->andReturn($categoryMock);
+
+    // Instanciação do caso de uso com o repositório spy
+    $useCase = new CreateCategoryUseCase($repositorySpy);
+
+    // Criação do DTO de entrada
+    $input = new CategoryCreateInputDto(
+      name: $name,
+      description: $description,
+      isActive: $isActive
+    );
+
+    // Act
+    $output = $useCase->execute($input);
+
+    // Assert
+    // Verifica se o método insert foi chamado pelo menos uma vez
+    $repositorySpy->shouldHaveReceived('insert')->once();
+
+    // Verifica se insert foi chamado com um objeto Category
+    $repositorySpy->shouldHaveReceived('insert')->with(Mockery::type(Category::class));
+
+    // Verificar se o DTO de saída tem os valores esperados
+    $this->assertEquals($uuid, $output->id);
+    $this->assertEquals($name, $output->name);
+    $this->assertEquals($description, $output->description);
+    $this->assertEquals($isActive, $output->is_active);
+  }
+
+  public function testShouldThrowExceptionWhenCategoryNameIsInvalid()
+  {
+    $this->expectException(\Core\Domain\Exception\EntityValidationException::class);
+
+    // Mock do repositório
+    $repositoryMock = Mockery::mock(CategoryRepositoryInterface::class);
+
+    // Instanciação do caso de uso com o repositório mockado
+    $useCase = new CreateCategoryUseCase($repositoryMock);
+
+    // Criação do DTO de entrada com nome inválido (falta o tipo/sufixo)
+    $input = new CategoryCreateInputDto(
+      name: 'Invalid', // Não tem duas partes (nome e tipo) conforme regra em SimpleName
+      description: 'Some description',
+      isActive: true
+    );
+
+    // Act - deve lançar exceção
+    $useCase->execute($input);
+
+    Mockery::close();
+  }
+
+  public function provideValidCategoryData()
+  {
+    return [
+      'complete data' => ['Movies Action', 'Action movies description', true],
+      'inactive category' => ['Series Drama', 'Drama series description', false],
+      'minimal description' => ['Books Fiction', '', true],
+    ];
+  }
+
+  protected function tearDown(): void
+  {
+    Mockery::close();
+    parent::tearDown();
+  }
 }
